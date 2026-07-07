@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — PaidUp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+    <nav class="border-b border-gray-800 px-6 py-4 flex justify-between items-center">
+        <a href="/dashboard" class="text-xl font-bold text-emerald-400">PaidUp</a>
+        <div class="flex items-center gap-4">
+            <span class="text-gray-400 text-sm">{{ user.email }}</span>
+            <a href="/auth/logout" class="text-gray-500 hover:text-gray-300 text-sm">Logout</a>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-6 py-8">
+        <!-- Stats cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-gray-900 rounded-xl p-5 border border-gray-800">
+                <p class="text-gray-500 text-sm">Active Overdue</p>
+                <p class="text-2xl font-bold">{{ active_count }}</p>
+            </div>
+            <div class="bg-gray-900 rounded-xl p-5 border border-gray-800">
+                <p class="text-gray-500 text-sm">Outstanding Amount</p>
+                <p class="text-2xl font-bold">${{ "%.2f"|format(active_amount) }}</p>
+            </div>
+            <div class="bg-gray-900 rounded-xl p-5 border border-gray-800">
+                <p class="text-gray-500 text-sm">All-Time Recovered</p>
+                <p class="text-2xl font-bold">${{ "%.2f"|format(all_time.amount_recovered / 100) }}</p>
+            </div>
+            <div class="bg-gray-900 rounded-xl p-5 border border-gray-800">
+                <p class="text-gray-500 text-sm">Recovery Rate</p>
+                <p class="text-2xl font-bold">{{ recovery_rate }}%</p>
+            </div>
+        </div>
+
+        <!-- Aging + Recovery charts -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <h3 class="font-semibold text-lg mb-4">Aging Breakdown</h3>
+                {% if aging %}
+                <canvas id="agingChart" height="250"></canvas>
+                {% else %}
+                <p class="text-gray-500 text-center py-12">No overdue invoices yet.</p>
+                {% endif %}
+            </div>
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <h3 class="font-semibold text-lg mb-4">This Month</h3>
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="bg-gray-800 rounded-lg p-4">
+                        <p class="text-gray-400 text-sm">Overdue</p>
+                        <p class="text-xl font-bold">{{ month_stats.total_overdue }}</p>
+                        <p class="text-sm text-gray-500">${{ "%.2f"|format(month_stats.total_amount_overdue / 100) }}</p>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-4">
+                        <p class="text-gray-400 text-sm">Recovered</p>
+                        <p class="text-xl font-bold text-emerald-400">{{ month_stats.total_recovered }}</p>
+                        <p class="text-sm text-emerald-500">${{ "%.2f"|format(month_stats.total_amount_recovered / 100) }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+            <h3 class="font-semibold text-lg mb-4">Recent Overdue Invoices</h3>
+            {% if recent %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-gray-500 border-b border-gray-800">
+                            <th class="text-left py-3 px-4">Customer</th>
+                            <th class="text-left py-3 px-4">Invoice</th>
+                            <th class="text-right py-3 px-4">Amount</th>
+                            <th class="text-right py-3 px-4">Days Overdue</th>
+                            <th class="text-left py-3 px-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in recent %}
+                        <tr class="border-b border-gray-800/50">
+                            <td class="py-3 px-4">{{ inv.customer_name or "-" }}</td>
+                            <td class="py-3 px-4 text-gray-400">{{ inv.external_id }}</td>
+                            <td class="text-right py-3 px-4">${{ "%.2f"|format(inv.amount / 100) }}</td>
+                            <td class="text-right py-3 px-4">{{ inv.days_overdue }}</td>
+                            <td class="py-3 px-4">
+                                <span class="inline-block px-2 py-0.5 rounded text-xs font-medium
+                                    {% if inv.status == 'recovered' %}bg-green-900/50 text-green-300
+                                    {% elif inv.status == 'pending' %}bg-yellow-900/50 text-yellow-300
+                                    {% else %}bg-gray-800 text-gray-400{% endif %}">
+                                    {{ inv.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-8">No overdue invoices. Your customers are paying on time! 🎉</p>
+            {% endif %}
+        </div>
+    </main>
+
+    {% if aging %}
+    <script>
+    const ctx = document.getElementById('agingChart')?.getContext('2d');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: [{% for a in aging %}'{{ a.bucket }}',{% endfor %}],
+                datasets: [{
+                    data: [{% for a in aging %}{{ a.count }},{% endfor %}],
+                    backgroundColor: [
+                        'rgba(52, 211, 153, 0.6)',
+                        'rgba(250, 204, 21, 0.6)',
+                        'rgba(251, 146, 60, 0.6)',
+                        'rgba(239, 68, 68, 0.6)',
+                    ],
+                    borderColor: '#1F2937',
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#9CA3AF', padding: 20 }
+                    }
+                }
+            }
+        });
+    }
+    </script>
+    {% endif %}
+</body>
+</html>
