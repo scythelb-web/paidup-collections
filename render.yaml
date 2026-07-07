@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: paidup-collections
+    runtime: docker
+    plan: starter
+    branch: master
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: ADMIN_EMAIL
+        value: scythelb@gmail.com
+      - key: BASE_URL
+        sync: false
+      - key: DATABASE_URL
+        value: sqlite:////data/paidup.db
+    disk:
+      name: paidup-data
+      mountPath: /data
+      sizeGB: 1
