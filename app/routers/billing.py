@@ -16,9 +16,9 @@ router = APIRouter(tags=["billing"])
 stripe.api_key = STRIPE_SECRET_KEY
 
 PRICE_IDS = {
-    "starter": "price_REPLACE_paidupcol_starter",
-    "growth": "price_REPLACE_paidupcol_growth",
-    "scale": "price_REPLACE_paidupcol_scale",
+    "starter": "price_1Tr3DdIh3bqeW0wSOO3oAwPG",
+    "growth": "price_1Tr3DvIh3bqeW0wSn4ePM15a",
+    "scale": "price_1Tr3EBIh3bqeW0wS8FwMqNPA",
 }
 
 
