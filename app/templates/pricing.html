@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing — PaidUp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+
+    <nav class="border-b border-gray-800 px-6 py-4 flex justify-between items-center">
+        <a href="/" class="text-xl font-bold text-emerald-400">PaidUp</a>
+        <div class="space-x-4">
+            <a href="/dashboard" class="text-gray-300 hover:text-white">Dashboard</a>
+        </div>
+    </nav>
+
+    <section class="max-w-6xl mx-auto px-6 pt-16 pb-24">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl font-bold mb-4">Simple, Transparent Pricing</h1>
+            <p class="text-lg text-gray-400 max-w-xl mx-auto">
+                Choose the plan that fits your invoice volume. Upgrade or downgrade anytime.
+            </p>
+        </div>
+
+        {% if success %}
+        <div class="max-w-md mx-auto mb-12 bg-emerald-900/40 border border-emerald-700 rounded-lg p-6 text-center">
+            <p class="text-emerald-300 text-lg font-semibold">&#10003; Subscription activated!</p>
+            <p class="text-gray-400 mt-2">Your account has been upgraded. You can now process more invoices.</p>
+            <a href="/dashboard" class="inline-block mt-4 bg-emerald-600 hover:bg-emerald-500 px-6 py-2 rounded-lg text-white font-medium">Go to Dashboard</a>
+        </div>
+        {% endif %}
+
+        <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+
+            <!-- Starter -->
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 flex flex-col">
+                <h3 class="text-xl font-bold mb-1">{{ pricing.starter.label }}</h3>
+                <p class="text-gray-400 text-sm mb-6">For freelancers and small shops</p>
+                <div class="mb-6">
+                    <span class="text-5xl font-bold">${{ pricing.starter.price }}</span>
+                    <span class="text-gray-400">/month</span>
+                </div>
+                <ul class="space-y-3 mb-8 text-gray-300 flex-1">
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Up to {{ pricing.starter.invoices }} invoices
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Automated reminders
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Email &amp; SMS recovery
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Basic analytics
+                    </li>
+                </ul>
+                <button onclick="subscribe('starter')"
+                        class="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 py-3 rounded-lg font-semibold transition-colors">
+                    Start Free
+                </button>
+            </div>
+
+            <!-- Growth -->
+            <div class="bg-gray-900 border border-emerald-700 rounded-2xl p-8 flex flex-col relative">
+                <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider">Most Popular</span>
+                <h3 class="text-xl font-bold mb-1">{{ pricing.growth.label }}</h3>
+                <p class="text-gray-400 text-sm mb-6">For growing businesses</p>
+                <div class="mb-6">
+                    <span class="text-5xl font-bold">${{ pricing.growth.price }}</span>
+                    <span class="text-gray-400">/month</span>
+                </div>
+                <ul class="space-y-3 mb-8 text-gray-300 flex-1">
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Up to {{ pricing.growth.invoices }} invoices
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Automated reminders
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Email &amp; SMS recovery
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Advanced analytics
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> QuickBooks integration
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Xero integration
+                    </li>
+                </ul>
+                <button onclick="subscribe('growth')"
+                        class="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-lg font-semibold transition-colors">
+                    Subscribe Now
+                </button>
+            </div>
+
+            <!-- Scale -->
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 flex flex-col">
+                <h3 class="text-xl font-bold mb-1">{{ pricing.scale.label }}</h3>
+                <p class="text-gray-400 text-sm mb-6">For teams and agencies</p>
+                <div class="mb-6">
+                    <span class="text-5xl font-bold">${{ pricing.scale.price }}</span>
+                    <span class="text-gray-400">/month</span>
+                </div>
+                <ul class="space-y-3 mb-8 text-gray-300 flex-1">
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Up to {{ pricing.scale.invoices }} invoices
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Automated reminders
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Email &amp; SMS recovery
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Advanced analytics
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> QuickBooks &amp; Xero
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Priority support
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">&#10003;</span> Custom workflows
+                    </li>
+                </ul>
+                <button onclick="subscribe('scale')"
+                        class="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 py-3 rounded-lg font-semibold transition-colors">
+                    Subscribe Now
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <script>
+        async function subscribe(plan) {
+            try {
+                const resp = await fetch('/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plan: plan })
+                });
+                const data = await resp.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            } catch (err) {
+                alert('Something went wrong. Please try again.');
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>

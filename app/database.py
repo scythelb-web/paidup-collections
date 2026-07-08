@@ -157,3 +157,9 @@ def init_db():
                 UNIQUE(user_id, month)
             );
         """)
+
+        # Migration: add stripe_subscription_id if column doesn't exist
+        try:
+            db.execute("SELECT stripe_subscription_id FROM users LIMIT 0")
+        except Exception:
+            db.execute("ALTER TABLE users ADD COLUMN stripe_subscription_id TEXT")
